@@ -1,9 +1,9 @@
 import chains
 
 if __name__ == "__main__":
+    
+    arr = [x for x in range(10)]
+    struct = chains.LinkedList(arr)
 
-    struct = chains.Chain([x for x in range(10)])
-
-    print(struct.head)
-    print(struct.tail)
-
+    print(struct)
+    

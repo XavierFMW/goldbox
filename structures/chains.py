@@ -6,20 +6,25 @@ class Node:
         self.value = value
         self.parent = parent
         self.child = child
+    
+    
+    def display_value(self):
+        return f'"{self.value}"' if isinstance(self.value, str) else self.value 
 
 
     def __str__(self):
-        return f"Node({self.value})"
+        return f"Node({self.display_value()})"
+
 
 
 class Chain:
 
-    def __init__(self, contents=None):
+    def __init__(self, array=None):
         
-        if contents:
+        if array:
             
             current = None 
-            for i, value in enumerate(contents):    
+            for i, value in enumerate(array):    
                 node = Node(value, current)
 
                 if current:
@@ -36,12 +41,165 @@ class Chain:
 
 
     def __str__(self):
-        output = ""
+        
+        if self.head:
 
-        current = self.head
-        while current:
-            output += f"{current.value}{' > ' if current != self.tail else ''}"
-            current = current.child
+            output = ""
 
-        return output
+            current = self.head
+            while current:
+                output += f"{current.display_value()}{' > ' if current != self.tail else ''}"
+                current = current.child
+
+            return output
+
+        else:
+            return " > "
+
+
+
+class LinkedList(Chain):
+
+    MISSING_VALUE_ERROR = ValueError("Value not contained within linked list.")
+    MISSING_INDEX_ERROR = IndexError("Value at index does not exist within linked list.")
+
+    def __init__(self, array=None):
+        super().__init__(array)
+        self.length = len(array)
+        self.iteration = self.head
+    
+
+    def append(self, value):
+        node = Node(value, self.tail)
+        length += 1    
+
+        if self.tail:
+            self.tail.child = node
+            self.tail = node
+
+        else:
+            self.head = node
+            self.tail = node
+
+
+    def prepend(self, value):
+        node = Node(value, child=self.head)
+        length += 1
+
+        if self.head:
+            self.head.parent = node
+            self.head = node
+        else:
+            self.head = node
+            self.tail = node
+
+
+    def insert(self, value, index):
+
+        old = self.index(index)
+        new = Node(value, child=old)
+
+        if old == self.head:
+            self.head = new
+        else:
+            old.parent.child = new
+            new.parent = old.parent
+
+        old.parent = new
+
+
+    def extend(self, array, reverse=False, prepend=False):
+        
+        if prepend:
+            reverse = not reverse  # Prepending each element will naturally reverse the order of the inserted list,requiring a subsequent reversal.
+            executed = self.prepend
+        else:
+            executed = self.append
+
+        if reverse:
+            i = len(array) - 1
+            while i >= 0:
+                executed(array[i])
+                i -= 1
+
+        else:
+            for value in array:
+                executed(value)
+
+
+    def remove(self, value):
+
+        node = self.search(value)
+        self.__remove_node(node)
+
+
+    def pop(self, index=0):
+
+        node = self.index(index)
+        self.__remove_node(node)
+
+
+    def search(self, value):
+
+        for node in self:
+            if node.value == value:
+                return node
+        
+        raise self.MISSING_VALUE_ERROR
+
+
+    def index(self, index):
+        
+        count = 0
+        for node in self:
+            if count == index:
+                return node
+            count += 1
+
+        raise self.MISSING_INDEX_ERROR
+
+
+    def values(self):
+        for node in self:
+            yield node.value
+
+
+    def __remove_node(self, node):
+
+        if not self.head or not self.tail:
+            return
+
+        if node == self.head and node == self.tail:
+            self.head = None
+            self.tail = None
+
+        elif node == self.head:
+            self.head = node.child
+            self.head.parent = None
+            
+        elif node == self.tail:
+            self.tail = node.parent
+            self.tail.child = None
+
+        else:
+            node.parent.child = node.child
+            node.child.parent = node.parent
+
+        length -= 1
+
+
+    def __iter__(self):
+        return self
+
+
+    def __next__(self):
+
+        if not self.iteration:
+            self.iteration = self.head
+            raise StopIteration()
+
+        iteration_value = self.iteration
+        self.iteration = self.iteration.child
+        return iteration_value
+
 
