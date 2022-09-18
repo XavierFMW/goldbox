@@ -19,6 +19,8 @@ class Node:
 
 class Chain:
 
+	SEPARATOR = " > "
+
     def __init__(self, array=None):
         
         if array:
@@ -48,13 +50,13 @@ class Chain:
 
             current = self.head
             while current:
-                output += f"{current.display_value()}{' > ' if current != self.tail else ''}"
+                output += f"{current.display_value()}{self.SEPARATOR if current != self.tail else ''}"
                 current = current.child
 
             return output
 
         else:
-            return " > "
+            return self.SEPARATOR 
 
 
 
@@ -75,11 +77,11 @@ class LinkedList(Chain):
 
         if self.tail:
             self.tail.child = node
-            self.tail = node
 
         else:
             self.head = node
-            self.tail = node
+
+		self.tail = node
 
 
     def prepend(self, value):
@@ -88,10 +90,11 @@ class LinkedList(Chain):
 
         if self.head:
             self.head.parent = node
-            self.head = node
+
         else:
-            self.head = node
             self.tail = node
+
+		self.head = node
 
 
     def insert(self, value, index):
@@ -101,6 +104,7 @@ class LinkedList(Chain):
 
         if old == self.head:
             self.head = new
+
         else:
             old.parent.child = new
             new.parent = old.parent
@@ -111,7 +115,7 @@ class LinkedList(Chain):
     def extend(self, array, reverse=False, prepend=False):
         
         if prepend:
-            reverse = not reverse  # Prepending each element will naturally reverse the order of the inserted list,requiring a subsequent reversal.
+            reverse = not reverse  # Prepending each element will naturally reverse the order of the inserted list, requiring a subsequent reversal.
             executed = self.prepend
         else:
             executed = self.append
@@ -128,13 +132,11 @@ class LinkedList(Chain):
 
 
     def remove(self, value):
-
         node = self.search(value)
         self.__remove_node(node)
 
 
     def pop(self, index=0):
-
         node = self.index(index)
         self.__remove_node(node)
 
