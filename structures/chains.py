@@ -164,6 +164,24 @@ class LinkedList(Chain):
 	def values(self):
 		for node in self:
 			yield node.value
+	
+
+	def reverse(self):
+
+		current = self.tail
+		while current:
+			
+			if current == self.tail:
+				self.head = current
+			
+			temp = current.child
+			current.child = current.parent
+			current.parent = temp
+
+			if not current.child:
+				self.tail = current
+		
+			current = current.child
 
 
 	def __remove_node(self, node):
