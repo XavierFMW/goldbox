@@ -21,12 +21,12 @@ class Chain:
 
 	SEPARATOR = " > "
 
-    def __init__(self, array=None):
+	def __init__(self, array=None):
         
-        if array:
+		if array:
             
-            current = None 
-            for i, value in enumerate(array):    
+			current = None 
+			for i, value in enumerate(array):    
                 node = Node(value, current)
 
                 if current:
@@ -204,4 +204,38 @@ class LinkedList(Chain):
         self.iteration = self.iteration.child
         return iteration_value
 
+
+
+class Stack(Chain):
+
+	def __init__(self, array=None):
+		super().__init__(array)
+
+
+	def push(self, value):
+		node = Node(value, self.tail)		
+
+		if self.tail:
+			self.tail.child = node
+		else:
+			self.head = node
+		
+		self.tail = node
+
+	
+	def pull(self):
+		
+		if self.tail:
+			value = self.tail.value
+			self.tail = self.tail.parent
+
+			if self.tail:
+				self.tail.child = None
+			else:
+				self.head = None
+			
+			return value
+
+		else:
+			return	
 
