@@ -42,7 +42,7 @@ class Chain:
 			self.tail = None
 
 
-	def __str__(self):
+	def __str__(self, separator=self.SEPARATOR):
 		
 		if self.head:
 
@@ -50,13 +50,13 @@ class Chain:
 
 			current = self.head
 			while current:
-				output += f"{current.display_value()}{self.SEPARATOR if current != self.tail else ''}"
+				output += f"{current.display_value()}{separator if current != self.tail else ''}"
 				current = current.child
 
 			return output
 
 		else:
-			return self.SEPARATOR 
+			return separator 
 
 
 
@@ -293,7 +293,7 @@ class Stack(Chain):
 class Queue(Chain):
 
 	def __init__(self, array=None):
-		super().__init__(array[::-1])
+        	super().__init__(array[::-1] if array else None)
 
 
 	def push(self, value):
@@ -353,4 +353,49 @@ class Queue(Chain):
 			raise StopIteration()
 
 		return self.pull()
-		
+
+
+
+class Deque(Queue):
+
+        self.SEPARATOR = " | "
+
+	def __init__(self, array=None):
+        	super().__init__(array[::-1] if array else None)
+
+
+	def push_back(self, value):
+            super().push(value)
+
+
+        def push_front(self, value):
+            pass
+
+
+        def pull_back():
+            pass
+
+	
+	def pull_front(self):
+            return super().pull()	
+	
+
+	def extend(self, array, to_back=True, reverse=False):
+
+                push = self.push_back if back else self.push_front
+		if reverse:
+
+			index = len(array) - 1
+			while index >= 0:
+				push(array[index])
+				index -= 1
+
+		else:
+
+			for value in array:
+				push(value)
+	
+
+	def __str__(self):
+		return super().super().__str__(self.SEPARATOR) 
+
