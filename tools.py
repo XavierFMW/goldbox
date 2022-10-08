@@ -21,11 +21,11 @@ def replace_text_in_file(filename, old, new):
 			file.write(line.replace(old, new))
 
 
-def shrink(filename, spaces):
+def shrink(filename, spaces=4):
 	replace_text_in_file(filename, old=(" " * spaces), new="\t")
 
 
-def grow(filename, spaces):
+def grow(filename, spaces=4):
 	replace_text_in_file(filename, old="\t", new=(" " * spaces))
 
 
