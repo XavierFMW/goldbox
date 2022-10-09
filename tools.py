@@ -1,5 +1,6 @@
 import random
 import secrets
+import time
 
 
 def get_lines(filename, collapse_whitespace=True):
@@ -29,7 +30,7 @@ def grow(filename, spaces=4):
 	replace_text_in_file(filename, old="\t", new=(" " * spaces))
 
 
-def timeit(function):
+def time_it(function):
 
 	def wrapper(*args, **kwargs):
 		start = time.time()
