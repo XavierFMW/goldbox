@@ -1,3 +1,5 @@
+import copy
+
 
 class Node:
 
@@ -41,12 +43,50 @@ class Chain:
             self.head = None
             self.tail = None
 
+    def copy(self):
+        return copy.deepcopy(self)
+
+    def reverse(self):
+
+        current = self.tail
+        while current:
+
+            if current == self.tail:
+                self.head = current
+
+            temp = current.child
+            current.child = current.parent
+            current.parent = temp
+
+            if not current.child:
+                self.tail = current
+
+            current = current.child
+
     def display_ends(self):
         print(
             f"{self.head.parent if self.head else None} -> {self.head}",
             "-> ... -> "
             f"{self.tail} -> {self.tail.child if self.tail else None}",
         )
+
+    def __eq__(self, other):
+
+        if isinstance(other, self.__class__) and len(self) == len(other):
+            local = self.head
+            foreign = other.head
+
+            while local and foreign:
+                if local.value != foreign.value:
+                    return False
+                local, foreign = local.child, foreign.child
+            return True
+
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __str__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
@@ -69,6 +109,11 @@ class Chain:
 
     def __len__(self):
         return self.length
+
+    def __reversed__(self):
+        c = self.copy()
+        c.reverse()
+        return c
 
 
 class LinkedList(Chain):
@@ -165,23 +210,6 @@ class LinkedList(Chain):
         for node in self:
             yield node.value
 
-    def reverse(self):
-
-        current = self.tail
-        while current:
-
-            if current == self.tail:
-                self.head = current
-
-            temp = current.child
-            current.child = current.parent
-            current.parent = temp
-
-            if not current.child:
-                self.tail = current
-
-            current = current.child
-
     def __remove_node(self, node):
 
         if not self.head or not self.tail:
@@ -206,6 +234,7 @@ class LinkedList(Chain):
         self.length -= 1
 
     def __iter__(self):
+        self.iteration = self.head
         return self
 
     def __next__(self):
