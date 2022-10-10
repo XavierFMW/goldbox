@@ -2,13 +2,12 @@
 class Node:
 
     def __init__(self, value, parent=None, child=None):
-
         self.value = value
         self.parent = parent
         self.child = child
 
     def display_value(self):
-        return f'"{self.value}"' if isinstance(self.value, str) else self.value
+        return f'"{self.value}"' if isinstance(self.value, str) else str(self.value)
 
     def __str__(self):
         return f"Node({self.display_value()})"
@@ -17,14 +16,17 @@ class Node:
 class Chain:
 
     SEPARATOR = " > "
+    PREFIX = ""
+    SUFFIX = ""
 
-    def __init__(self, array=None):
+    def __init__(self, iterable=None, reverse=False):
 
-        if array:
-
+        if iterable:
+            self.length = len(iterable)
             current = None
-            for i, value in enumerate(array):
-                node = Node(value, current)
+
+            for i, value in enumerate(reversed(iterable) if reverse else iterable):
+                node = Node(value, parent=current)
 
                 if current:
                     current.child = node
@@ -35,23 +37,38 @@ class Chain:
             self.tail = current
 
         else:
+            self.length = 0
             self.head = None
             self.tail = None
 
-    def __str__(self):
+    def display_ends(self):
+        print(
+            f"{self.head.parent if self.head else None} -> {self.head}",
+            "-> ... -> "
+            f"{self.tail} -> {self.tail.child if self.tail else None}",
+        )
+
+    def __str__(self, separator=None, prefix=None, suffix=None):
+        sep = self.SEPARATOR if separator is None else separator
+        pre = self.PREFIX if prefix is None else prefix
+        suf = self.SUFFIX if suffix is None else suffix
 
         if self.head:
-            output = ""
+            output = pre
 
             current = self.head
             while current:
-                output += f"{current.display_value()}{self.SEPARATOR if current != self.tail else ''}"
+                output += f"{current.display_value()}{sep if current != self.tail else ''}"
                 current = current.child
 
+            output += suf
             return output
 
         else:
-            return self.SEPARATOR
+            return f"{pre}{sep}{suf}"
+
+    def __len__(self):
+        return self.length
 
 
 class LinkedList(Chain):
@@ -59,34 +76,31 @@ class LinkedList(Chain):
     MISSING_VALUE_ERROR = ValueError("Value not contained within linked list.")
     MISSING_INDEX_ERROR = IndexError("Value at index does not exist within linked list.")
 
-    def __init__(self, array=None):
-        super().__init__(array)
-        self.length = len(array)
+    def __init__(self, iterable=None, reverse=False):
+        super().__init__(iterable, reverse)
         self.iteration = self.head
 
     def append(self, value):
-        node = Node(value, self.tail)
-        self.length += 1
+        node = Node(value, parent=self.tail)
 
         if self.tail:
             self.tail.child = node
-
         else:
             self.head = node
 
         self.tail = node
+        self.length += 1
 
     def prepend(self, value):
         node = Node(value, child=self.head)
-        self.length += 1
 
         if self.head:
             self.head.parent = node
-
         else:
             self.tail = node
 
         self.head = node
+        self.length += 1
 
     def insert(self, value, index):
         old = self.index(index)
@@ -100,8 +114,9 @@ class LinkedList(Chain):
             new.parent = old.parent
 
         old.parent = new
+        self.length += 1
 
-    def extend(self, array, reverse=False, prepend=False):
+    def extend(self, iterable, reverse=False, prepend=False):
 
         if prepend:
             reverse = not reverse  # Prepending each element will naturally reverse the order of the inserted list,
@@ -111,13 +126,13 @@ class LinkedList(Chain):
             executed = self.append
 
         if reverse:
-            i = len(array) - 1
-            while i >= 0:
-                executed(array[i])
-                i -= 1
+            index = len(iterable) - 1
+            while index >= 0:
+                executed(iterable[index])
+                index -= 1
 
         else:
-            for value in array:
+            for value in iterable:
                 executed(value)
 
     def remove(self, value):
@@ -206,11 +221,13 @@ class LinkedList(Chain):
 
 class Stack(Chain):
 
-    def __init__(self, array=None):
-        super().__init__(array)
+    PREFIX = "| "
+
+    def __init__(self, iterable=None, reverse=False):
+        super().__init__(iterable, reverse)
 
     def push(self, value):
-        node = Node(value, self.tail)
+        node = Node(value, parent=self.tail)
 
         if self.tail:
             self.tail.child = node
@@ -218,6 +235,7 @@ class Stack(Chain):
             self.head = node
 
         self.tail = node
+        self.length += 1
 
     def pull(self):
 
@@ -230,25 +248,29 @@ class Stack(Chain):
             else:
                 self.head = None
 
+            self.length -= 1
             return value
 
         else:
             return
 
-    def extend(self, array, reverse=False):
+    def extend(self, iterable, reverse=False):
 
         if reverse:
-            index = len(array) - 1
+            index = len(iterable) - 1
             while index >= 0:
-                self.push(array[index])
+                self.push(iterable[index])
                 index -= 1
 
         else:
-            for value in array:
+            for value in iterable:
                 self.push(value)
 
-    def __str__(self):
-        return f"| {super().__str__()}"
+    def __str__(self, separator=None, prefix=None, suffix=None):
+        sep = self.SEPARATOR if separator is None else separator
+        pre = self.PREFIX if prefix is None else prefix
+        suf = self.SUFFIX if suffix is None else suffix
+        return super().__str__(sep, pre, suf)
 
     def __iter__(self):
         return self
@@ -263,8 +285,11 @@ class Stack(Chain):
 
 class Queue(Chain):
 
-    def __init__(self, array=None):
-        super().__init__(array[::-1] if array else None)
+    PREFIX = "> "
+    SUFFIX = " >"
+
+    def __init__(self, iterable=None, reverse=False):
+        super().__init__(iterable, reverse)
 
     def push(self, value):
         node = Node(value, child=self.head)
@@ -275,6 +300,7 @@ class Queue(Chain):
             self.tail = node
 
         self.head = node
+        self.length += 1
 
     def pull(self):
 
@@ -287,25 +313,29 @@ class Queue(Chain):
             else:
                 self.head = None
 
+            self.length -= 1
             return value
 
         else:
             return
 
-    def extend(self, array, reverse=False):
+    def extend(self, iterable, reverse=False):
 
         if reverse:
-            index = len(array) - 1
+            index = len(iterable) - 1
             while index >= 0:
-                self.push(array[index])
+                self.push(iterable[index])
                 index -= 1
 
         else:
-            for value in array:
+            for value in iterable:
                 self.push(value)
 
-    def __str__(self):
-        return f"> {super().__str__()} >"
+    def __str__(self, separator=None, prefix=None, suffix=None):
+        sep = self.SEPARATOR if separator is None else separator
+        pre = self.PREFIX if prefix is None else prefix
+        suf = self.SUFFIX if suffix is None else suffix
+        return super().__str__(sep, pre, suf)
 
     def __iter__(self):
         return self
@@ -321,14 +351,20 @@ class Queue(Chain):
 class Deque(Queue):
 
     SEPARATOR = " | "
+    PREFIX = "< "
+    SUFFIX = " >"
 
-    def __init__(self, array=None):
-        super().__init__(array[::-1] if array else None)
+    def __init__(self, iterable=None, reverse=False):
+        super().__init__(iterable, reverse)
 
-    def push_back(self, value):
+    def push(self, value, to_back=True):
+        push = self.__push_back if to_back else self.__push_front
+        push(value)
+
+    def __push_back(self, value):
         super().push(value)
 
-    def push_front(self, value):
+    def __push_front(self, value):
         node = Node(value, parent=self.tail)
 
         if self.tail:
@@ -337,8 +373,13 @@ class Deque(Queue):
             self.head = node
 
         self.tail = node
+        self.length += 1
 
-    def pull_back(self):
+    def pull(self, from_front=True):
+        pull = self.__pull_front if from_front else self.__pull_back
+        pull()
+
+    def __pull_back(self):
         if self.head:
             value = self.head.value
             self.head = self.head.child
@@ -348,37 +389,30 @@ class Deque(Queue):
             else:
                 self.tail = None
 
+            self.length -= 1
             return value
 
         else:
             return
 
-    def pull_front(self):
+    def __pull_front(self):
         return super().pull()	
 
-    def extend(self, array, to_back=True, reverse=False):
-        push = self.push_back if to_back else self.push_front
+    def extend(self, iterable, reverse=False, prepend=True):
+        reverse = not reverse if prepend else reverse
 
         if reverse:
-            index = len(array) - 1
+            index = len(iterable) - 1
             while index >= 0:
-                push(array[index])
+                self.push(iterable[index], prepend)
                 index -= 1
 
         else:
-            for value in array:
-                push(value)
+            for value in iterable:
+                self.push(value, prepend)
 
-    def __str__(self):
-        if self.head:
-            output = "< "
-
-            current = self.head
-            while current:
-                output += f"{current.display_value()}{self.SEPARATOR if current != self.tail else ' >'}"
-                current = current.child
-
-            return output
-
-        else:
-            return self.SEPARATOR
+    def __str__(self, separator=None, prefix=None, suffix=None):
+        sep = self.SEPARATOR if separator is None else separator
+        pre = self.PREFIX if prefix is None else prefix
+        suf = self.SUFFIX if suffix is None else suffix
+        return super().__str__(sep, pre, suf)
