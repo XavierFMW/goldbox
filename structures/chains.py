@@ -70,23 +70,18 @@ class Chain:
             f"{self.tail} -> {self.tail.child if self.tail else None}",
         )
 
-    def __eq__(self, other):
+    def __add__(self, other):
+        output = self.copy()
+        output += other
+        return output
 
-        if isinstance(other, self.__class__) and len(self) == len(other):
-            local = self.head
-            foreign = other.head
+    def __sub__(self, other):
+        output = self.copy()
+        output -= other
+        return output
 
-            while local and foreign:
-                if local.value != foreign.value:
-                    return False
-                local, foreign = local.child, foreign.child
-            return True
-
-        else:
-            return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    def __radd__(self, other):
+        return self.__add__(other)
 
     def __str__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
@@ -184,6 +179,11 @@ class LinkedList(Chain):
         node = self.search(value)
         self.__remove_node(node)
 
+    def remove_all(self, value):
+        for node in self:
+            if node.value == value:
+                self.__remove_node(node)
+
     def pop(self, index=0):
         node = self.index(index)
         self.__remove_node(node)
@@ -232,6 +232,48 @@ class LinkedList(Chain):
             node.child.parent = node.parent
 
         self.length -= 1
+
+    def __eq__(self, other):
+
+        if isinstance(other, self.__class__) and len(self) == len(other):
+            local = self.head
+            foreign = other.head
+
+            while local and foreign:
+                if local.value != foreign.value:
+                    return False
+                local, foreign = local.child, foreign.child
+            return True
+
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __iadd__(self, other):
+        try:
+            self.extend(other)
+        except TypeError:
+            self.append(other)
+
+        return self
+
+    def __isub__(self, other):
+
+        try:
+            for item in other:
+                self.remove_all(item)
+        except TypeError:
+            self.remove_all(other)
+
+        return self
+
+    def __contains__(self, item):
+        for value in self.values():
+            if value == item:
+                return True
+        return False
 
     def __iter__(self):
         self.iteration = self.head
@@ -294,6 +336,10 @@ class Stack(Chain):
         else:
             for value in iterable:
                 self.push(value)
+
+    def __add__(self, other):
+        self.push(other)
+        return self
 
     def __str__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
@@ -359,6 +405,10 @@ class Queue(Chain):
         else:
             for value in iterable:
                 self.push(value)
+
+    def __add__(self, other):
+        self.push(other)
+        return self
 
     def __str__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
@@ -439,6 +489,10 @@ class Deque(Queue):
         else:
             for value in iterable:
                 self.push(value, prepend)
+
+    def __add__(self, other):
+        self.push(other)
+        return self
 
     def __str__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
