@@ -21,6 +21,9 @@ class Chain:
     PREFIX = ""
     SUFFIX = ""
 
+    MISSING_IADD = Exception("No addition operator present in object.")
+    MISSING_ISUB = Exception("No subtraction operator present in object.")
+
     def __init__(self, iterable=None, reverse=False):
 
         if iterable:
@@ -71,13 +74,19 @@ class Chain:
         )
 
     def __add__(self, other):
-        output = self.copy()
-        output += other
+        if hasattr(self.__class__, "__iadd__"):
+            output = self.copy()
+            output += other
+        else:
+            raise self.MISSING_IADD
         return output
 
     def __sub__(self, other):
-        output = self.copy()
-        output -= other
+        if hasattr(self.__class__, "__isub__"):
+            output = self.copy()
+            output -= other
+        else:
+            raise self.MISSING_ISUB
         return output
 
     def __radd__(self, other):
@@ -337,7 +346,7 @@ class Stack(Chain):
             for value in iterable:
                 self.push(value)
 
-    def __add__(self, other):
+    def __iadd__(self, other):
         self.push(other)
         return self
 
@@ -406,7 +415,7 @@ class Queue(Chain):
             for value in iterable:
                 self.push(value)
 
-    def __add__(self, other):
+    def __iadd__(self, other):
         self.push(other)
         return self
 
@@ -490,7 +499,7 @@ class Deque(Queue):
             for value in iterable:
                 self.push(value, prepend)
 
-    def __add__(self, other):
+    def __iadd__(self, other):
         self.push(other)
         return self
 
