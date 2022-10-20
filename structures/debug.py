@@ -1,5 +1,6 @@
-import chains
+import trees
 
 
 if __name__ == "__main__":
-    pass
+    struct = trees.BinaryTree([x for x in range(7)])
+    print(struct.root)
