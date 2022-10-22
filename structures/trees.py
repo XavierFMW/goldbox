@@ -1,3 +1,5 @@
+import math
+
 
 class BinaryNode:
 
@@ -12,6 +14,12 @@ class BinaryNode:
             self.left = node
         else:
             self.right = node
+
+    def pop_child(self, node):
+        if node is self.left:
+            self.left = None
+        elif node is self.right:
+            self.right = None
 
     def display_value(self):
         return f'"{self.value}"' if isinstance(self.value, str) else str(self.value)
@@ -34,20 +42,38 @@ class BinaryTree:
         else:
             self.root = None
 
+    def index(self, index):
+        try:
+            return self.__get_node_at_index(index)
+        except AttributeError:
+            return None
+
     def insert(self, value, index):
-        parent = self.root
-        if parent:
-            n = index + 1
-            while n > 2:
-                mod = n % 2
-                if mod:
-                    parent = parent.right
-                else:
-                    parent = parent.left
-                print(parent)
-                n //= 2
-            parent.set_child(value, bool(n % 2))
+        if self.root:
+            parent = self.index((index - 1) // 2)
+            parent.set_child(value, is_left=bool(index % 2))
 
         else:
             self.root = BinaryNode(value)
 
+    def pop(self, index):
+        removed = self.index(index)
+        if removed == self.root:
+            del self.root
+            self.root = None
+        else:
+            removed.parent.pop_child(removed)
+
+    def __get_node_at_index(self, index):
+        current = self.root
+        if index > 0:
+            n = index + 1
+            power = 2 ** math.floor(math.log(n, 2))
+            base = power // 2
+            total = n - power
+            while base > 0:
+                quotient = total // base
+                current = current.right if quotient else current.left
+                total -= quotient * base
+                base //= 2
+        return current
