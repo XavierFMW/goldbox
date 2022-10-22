@@ -40,8 +40,7 @@ class BinaryTree:
             self.root = BinaryNode(values[0])
             self.size = 1
             for index in range(1, length):
-                value = values[index]
-                self.insert(value, index)
+                self.insert(values[index], index)
 
         else:
             self.root = None
@@ -128,3 +127,26 @@ class BinaryTree:
         value = self.__nodes[self.__iteration]
         self.__iteration += 1
         return value
+
+
+class BinarySearchTree:
+
+    def __init__(self, values=()):
+
+        length = len(values)
+
+        if length:
+            self.root = BinaryNode(values[0])
+            for value in values:
+                self.push(value)
+
+        else:
+            self.root = None
+
+    def push(self, value):
+
+        if self.root:
+            pass
+
+        else:
+            self.root = BinaryNode(value)
