@@ -127,7 +127,7 @@ class LinkedList(Chain):
 
     def __init__(self, iterable=None, reverse=False):
         super().__init__(iterable, reverse)
-        self.iteration = self.head
+        self.__iteration = self.head
 
     def append(self, value):
         node = Node(value, parent=self.tail)
@@ -285,17 +285,17 @@ class LinkedList(Chain):
         return False
 
     def __iter__(self):
-        self.iteration = self.head
+        self.__iteration = self.head
         return self
 
     def __next__(self):
 
-        if not self.iteration:
-            self.iteration = self.head
+        if not self.__iteration:
+            self.__iteration = self.head
             raise StopIteration()
 
-        iteration_value = self.iteration
-        self.iteration = self.iteration.child
+        iteration_value = self.__iteration
+        self.__iteration = self.__iteration.child
         return iteration_value
 
 
