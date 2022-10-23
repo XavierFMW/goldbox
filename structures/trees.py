@@ -28,14 +28,18 @@ class BinaryNode:
                 self.right = None
                 self.children -= 1
 
-    def display_value(self):
+    def get_display_value(self):
         return f'"{self.value}"' if isinstance(self.value, str) else str(self.value)
 
     def __str__(self):
-        return f"BinaryNode({self.display_value()})"
+        return f"BinaryNode({self.get_display_value()})"
 
 
 class BinaryTree:
+
+    SEPARATOR = ", "
+    PREFIX = "BinaryTree("
+    SUFFIX = ")"
 
     def __init__(self, values=(), reverse=False):
         self.root = None
@@ -133,6 +137,20 @@ class BinaryTree:
         self.__iteration += 1
         return value
 
+    def __str__(self, separator=None, prefix=None, suffix=None):
+        sep = self.SEPARATOR if separator is None else separator
+        suf = self.SUFFIX if suffix is None else suffix
+        output = self.PREFIX if prefix is None else prefix
+
+        remaining = self.size
+        for node in self:
+            output += node.get_display_value()
+            remaining -= 1
+            output += "" if remaining == 0 else sep
+
+        output += suf
+        return output
+
 
 class BinarySearchTree:
 
@@ -167,22 +185,6 @@ class BinarySearchTree:
             self.size -= 1
             self.__values.discard(value)
             return value
-
-    def depth_first(self, func, args=(), get_value=True):
-        self.__dfs(self.root, func, args, get_value)
-
-    def breadth_first(self, func, args=(), get_value=True):
-        queue = chains.Queue()
-        if self.root:
-            queue.push(self.root)
-
-        while queue.head is not None:
-            node = queue.pull()
-            if node.left is not None:
-                queue.push(node.left)
-            if node.right is not None:
-                queue.push(node.right)
-            func(node.value if get_value else node, *args)
 
     def __get_parent_of_value(self, value):
         parent = None
@@ -256,10 +258,3 @@ class BinarySearchTree:
         while current.right:
             current = current.right
         return current
-
-    def __dfs(self, node, func, args, get_value):
-        if node is None:
-            return
-        func(node.value if get_value else node, *args)
-        self.__dfs(node.left, func, args, get_value)
-        self.__dfs(node.right, func, args, get_value)
