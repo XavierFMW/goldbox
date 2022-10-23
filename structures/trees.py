@@ -1,5 +1,6 @@
 import chains
 import math
+import copy
 
 
 class BinaryNode:
@@ -19,6 +20,9 @@ class BinaryNode:
             self.children += 1 if self.right is None else 0
             self.right = node
 
+    def get_child(self, is_left=True):
+        return self.left if is_left else self.right
+
     def pop_child(self, node):
         if node is not None:
             if node is self.left:
@@ -28,6 +32,11 @@ class BinaryNode:
                 self.right = None
                 self.children -= 1
 
+    def reverse_children(self):
+        temp = self.left
+        self.left = self.right
+        self.right = temp
+
     def get_display_value(self):
         return f'"{self.value}"' if isinstance(self.value, str) else str(self.value)
 
@@ -35,61 +44,50 @@ class BinaryNode:
         return f"BinaryNode({self.get_display_value()})"
 
 
-class BinaryTree:
+class _Tree:
 
     SEPARATOR = ", "
-    PREFIX = "BinaryTree("
+    PREFIX = "("
     SUFFIX = ")"
 
-    def __init__(self, values=(), reverse=False):
+    MISSING_IADD = Exception("Addition may not be performed on this object.")
+    MISSING_ISUB = Exception("Subtraction may not be performed on this object.")
+
+    def __init__(self):
         self.root = None
         self.size = 0
-        self.__nodes = []
-        self.__iteration = 0
+        self._nodes = []
+        self._iteration = 0
 
-        if values:
-            self.extend(values, reverse)
+    def values(self):
+        for node in self:
+            yield node.value
 
-    def extend(self, values, reverse=False):
-        for index in range(len(values)):
-            i = -(index + 1) if reverse else index
-            self.insert(values[i], index)
+    def copy(self):
+        return copy.deepcopy(self)
 
-    def index(self, index):
-        try:
-            return self.__get_node_at_index(index)
-        except AttributeError:
-            return None
+    def _pre(self, node, func, args, get_value):
+        if node is None:
+            return
+        func(node.value if get_value else node, *args)
+        self._pre(node.left, func, args, get_value)
+        self._pre(node.right, func, args, get_value)
 
-    def insert(self, value, index):
-        if self.root:
-            parent = self.index((index - 1) // 2)
-            parent.set_child(value, is_left=bool(index % 2))
-        else:
-            self.root = BinaryNode(value)
-        self.size += 1
+    def _in(self, node, func, args, get_value):
+        if node is None:
+            return
+        self._in(node.left, func, args, get_value)
+        func(node.value if get_value else node, *args)
+        self._in(node.right, func, args, get_value)
 
-    def pop(self, index):
-        removed = self.index(index)
-        if removed is self.root:
-            del self.root
-            self.root = None
-        else:
-            removed.parent.pop_child(removed)
-        self.size -= 1
+    def _post(self, node, func, args, get_value):
+        if node is None:
+            return
+        self._post(node.left, func, args, get_value)
+        self._post(node.right, func, args, get_value)
+        func(node.value if get_value else node, *args)
 
-    def values(self, breadth_first=True):
-        arr = []
-        if breadth_first:
-            self.breadth_first(arr.append)
-        else:
-            self.depth_first(arr.append)
-        return arr
-
-    def depth_first(self, func, args=(), get_value=True):
-        self.__dfs(self.root, func, args, get_value)
-
-    def breadth_first(self, func, args=(), get_value=True):
+    def _level(self, func, args=(), get_value=True):
         queue = chains.Queue()
         if self.root:
             queue.push(self.root)
@@ -102,40 +100,38 @@ class BinaryTree:
                 queue.push(node.right)
             func(node.value if get_value else node, *args)
 
-    def __get_node_at_index(self, index):
-        current = self.root
-        if index > 0:
-            n = index + 1
-            power = 2 ** math.floor(math.log(n, 2))
-            base = power // 2
-            total = n - power
-            while base > 0:
-                quotient = total // base
-                current = current.right if quotient else current.left
-                total -= quotient * base
-                base //= 2
-        return current
+    def __eq__(self, other):
 
-    def __dfs(self, node, func, args, get_value):
-        if node is None:
-            return
-        func(node.value if get_value else node, *args)
-        self.__dfs(node.left, func, args, get_value)
-        self.__dfs(node.right, func, args, get_value)
+        if isinstance(other, self.__class__) and len(self) == len(other):
+            for local, foreign in zip(self, other):
+                if local.value != foreign.value:
+                    return False
+            return True
 
-    def __iter__(self):
-        nodes = []
-        self.breadth_first(nodes.append, get_value=False)
-        self.__nodes = nodes
-        self.__iteration = 0
-        return self
+        else:
+            return False
 
-    def __next__(self):
-        if self.__iteration >= self.size:
-            raise StopIteration
-        value = self.__nodes[self.__iteration]
-        self.__iteration += 1
-        return value
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __add__(self, other):
+        if hasattr(self.__class__, "__iadd__"):
+            output = self.copy()
+            output += other
+        else:
+            raise self.MISSING_IADD
+        return output
+
+    def __sub__(self, other):
+        if hasattr(self.__class__, "__isub__"):
+            output = self.copy()
+            output -= other
+        else:
+            raise self.MISSING_ISUB
+        return output
+
+    def __radd__(self, other):
+        return self.__add__(other)
 
     def __str__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
@@ -151,14 +147,130 @@ class BinaryTree:
         output += suf
         return output
 
+    def __len__(self):
+        return self.size
 
-class BinarySearchTree:
+    def __iter__(self):
+        nodes = []
+        self._level(nodes.append, get_value=False)
+        self._nodes = nodes
+        self._iteration = 0
+        return self
+
+    def __next__(self):
+        try:
+            returned = self._nodes[self._iteration]
+            self._iteration += 1
+            return returned
+        except IndexError:
+            raise StopIteration
+
+
+class BinaryTree(_Tree):
+
+    PREFIX = "BinaryTree("
+
+    INDEX_ERROR = IndexError("Invalid index within binary tree; impossible to reach position.")
+
+    def __init__(self, values=()):
+        super().__init__()
+        if values:
+            for index in range(len(values)):
+                self.insert(values[index], index)
+
+    def insert(self, value, index):
+        if self.root is None:
+            self.root = BinaryNode(value)
+            self.size += 1
+        elif index == 0:
+            self.root.value = value
+        else:
+            parent = self.index((index - 1) // 2)
+            is_left = bool(index % 2)
+            child = parent.get_child(is_left)
+            if child:
+                child.value = value
+            else:
+                parent.set_child(value, is_left=is_left)
+                self.size += 1
+
+    def pop(self, index):
+        removed = self.index(index)
+        if removed is self.root:
+            del self.root
+            self.root = None
+        else:
+            removed.parent.pop_child(removed)
+        self.size -= 1
+
+    def index(self, index):
+        try:
+            node = self._get_node_at_index(index)
+        except AttributeError:
+            raise self.INDEX_ERROR
+        else:
+            if node is None:
+                raise self.INDEX_ERROR
+            return node
+
+    def values(self):
+        for node in self:
+            yield node.value
+
+    def pre_order(self, func, args=(), get_value=True):
+        self._pre(self.root, func, args, get_value)
+
+    def in_order(self, func, args=(), get_value=True):
+        self._in(self.root, func, args, get_value)
+
+    def post_order(self, func, args=(), get_value=True):
+        self._post(self.root, func, args, get_value)
+
+    def level_order(self, func, args=(), get_value=True):
+        self._level(func, args, get_value)
+
+    def invert(self):
+        self._level(BinaryNode.reverse_children, get_value=False)
+
+    def _get_node_at_index(self, index):
+        current = self.root
+        if index > 0:
+            n = index + 1
+            power = 2 ** math.floor(math.log(n, 2))
+            base = power // 2
+            total = n - power
+            while base > 0:
+                quotient = total // base
+                current = current.right if quotient else current.left
+                total -= quotient * base
+                base //= 2
+        return current
+
+    def __str__(self, separator=None, prefix=None, suffix=None):
+        sep = self.SEPARATOR if separator is None else separator
+        pre = self.PREFIX if prefix is None else prefix
+        suf = self.SUFFIX if suffix is None else suffix
+        return super().__str__(sep, pre, suf)
+
+    def __contains__(self, item):
+        for value in self.values():
+            if value == item:
+                return True
+        return False
+
+    def __reversed__(self):
+        c = self.copy()
+        c.invert()
+        return c
+
+
+class BinarySearchTree(_Tree):
+
+    PREFIX = "BinarySearchTree("
 
     def __init__(self, values=(), reverse=False):
-        self.root = None
-        self.size = 0
-        self.__values = set()
-
+        super().__init__()
+        self._values = set()
         if values:
             self.extend(values, reverse)
 
@@ -169,24 +281,31 @@ class BinarySearchTree:
 
     def push(self, value):
 
-        parent = self.__get_parent_of_value(value)
+        parent = self._get_parent_of_value(value)
         if parent:
             parent.set_child(value, is_left=(value < parent.value))
 
         else:
             self.root = BinaryNode(value)
         self.size += 1
-        self.__values.add(value)
+        self._values.add(value)
 
     def pull(self, value):
-        if value in self.__values:
-            node = self.get_node_of_value(value)
-            self.__delete_node(node)
+        if value in self._values:
+            node = self._get_node_of_value(value)
+            self._delete_node(node)
             self.size -= 1
-            self.__values.discard(value)
+            self._values.discard(value)
             return value
 
-    def __get_parent_of_value(self, value):
+    def pull_all(self, values):
+        for value in values:
+            self.pull(value)
+
+    def traverse(self, func, args=(), get_value=True):
+        self._in(self.root, func, args, get_value)
+
+    def _get_parent_of_value(self, value):
         parent = None
         current = self.root
         while current:
@@ -194,25 +313,25 @@ class BinarySearchTree:
             current = parent.right if value > parent.value else parent.left
         return parent
 
-    def get_node_of_value(self, value):
+    def _get_node_of_value(self, value):
         current = self.root
         while current and current.value != value:
             current = current.left if value < current.value else current.right
         return current
 
-    def __delete_node(self, node):
+    def _delete_node(self, node):
         parent = node.parent
 
         if parent is None:
-            self.__delete_root()
+            self._delete_root()
         elif node.children == 0:
-            self.__delete_leaf_node(node, parent)
+            self._delete_leaf_node(node, parent)
         elif node.children == 1:
-            self.__delete_one_child_node(node, parent)
+            self._delete_one_child_node(node, parent)
         else:
-            self.__delete_two_child_node(node)
+            self._delete_two_child_node(node)
 
-    def __delete_root(self):
+    def _delete_root(self):
         root = self.root
 
         if root.children == 0:
@@ -222,16 +341,16 @@ class BinarySearchTree:
             child.parent = None
             self.root = child
         else:
-            replacement = self.__get_next_highest(root)
+            replacement = self._get_next_highest(root)
             self.root.value = replacement.value
-            self.__delete_node(replacement)
+            self._delete_node(replacement)
 
     @staticmethod
-    def __delete_leaf_node(node, parent):
+    def _delete_leaf_node(node, parent):
         parent.pop_child(node)
 
     @staticmethod
-    def __delete_one_child_node(node, parent):
+    def _delete_one_child_node(node, parent):
         child = node.right if node.left is None else node.left
         child.parent = parent
         if node is parent.left:
@@ -239,22 +358,54 @@ class BinarySearchTree:
         else:
             parent.right = child
 
-    def __delete_two_child_node(self, node):
-        replacement = self.__get_next_highest(node) if node.value <= self.root.value \
-            else self.__get_next_lowest(node)
+    def _delete_two_child_node(self, node):
+        replacement = self._get_next_highest(node) if node.value <= self.root.value \
+            else self._get_next_lowest(node)
         node.value = replacement.value
-        self.__delete_node(replacement)
+        self._delete_node(replacement)
 
     @staticmethod
-    def __get_next_highest(node):
+    def _get_next_highest(node):
         current = node.right
         while current.left:
             current = current.left
         return current
 
     @staticmethod
-    def __get_next_lowest(node):
+    def _get_next_lowest(node):
         current = node.left
         while current.right:
             current = current.right
         return current
+
+    def __iadd__(self, other):
+        try:
+            self.extend(other)
+        except TypeError:
+            self.push(other)
+
+        return self
+
+    def __isub__(self, other):
+        try:
+            self.pull_all(other)
+        except TypeError:
+            self.pull(other)
+
+        return self
+
+    def __str__(self, separator=None, prefix=None, suffix=None):
+        sep = self.SEPARATOR if separator is None else separator
+        pre = self.PREFIX if prefix is None else prefix
+        suf = self.SUFFIX if suffix is None else suffix
+        return super().__str__(sep, pre, suf)
+
+    def __contains__(self, item):
+        return item in self._values
+
+    def __iter__(self):
+        nodes = []
+        self.traverse(nodes.append, get_value=False)
+        self._nodes = nodes
+        self._iteration = 0
+        return self

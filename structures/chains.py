@@ -15,14 +15,14 @@ class Node:
         return f"Node({self.display_value()})"
 
 
-class Chain:
+class _Chain:
 
     SEPARATOR = " > "
     PREFIX = ""
     SUFFIX = ""
 
-    MISSING_IADD = Exception("No addition operator present in object.")
-    MISSING_ISUB = Exception("No subtraction operator present in object.")
+    MISSING_IADD = Exception("Addition may not be performed on this object.")
+    MISSING_ISUB = Exception("Subtraction may not be performed on this object.")
 
     def __init__(self, iterable=None, reverse=False):
 
@@ -120,14 +120,14 @@ class Chain:
         return c
 
 
-class LinkedList(Chain):
+class LinkedList(_Chain):
 
     MISSING_VALUE_ERROR = ValueError("Value not contained within linked list.")
     MISSING_INDEX_ERROR = IndexError("Value at index does not exist within linked list.")
 
     def __init__(self, iterable=None, reverse=False):
         super().__init__(iterable, reverse)
-        self.__iteration = self.head
+        self._iteration = self.head
 
     def append(self, value):
         node = Node(value, parent=self.tail)
@@ -186,16 +186,16 @@ class LinkedList(Chain):
 
     def remove(self, value):
         node = self.search(value)
-        self.__remove_node(node)
+        self._remove_node(node)
 
     def remove_all(self, value):
         for node in self:
             if node.value == value:
-                self.__remove_node(node)
+                self._remove_node(node)
 
     def pop(self, index=0):
         node = self.index(index)
-        self.__remove_node(node)
+        self._remove_node(node)
 
     def search(self, value):
 
@@ -219,7 +219,7 @@ class LinkedList(Chain):
         for node in self:
             yield node.value
 
-    def __remove_node(self, node):
+    def _remove_node(self, node):
 
         if not self.head or not self.tail:
             return
@@ -245,13 +245,9 @@ class LinkedList(Chain):
     def __eq__(self, other):
 
         if isinstance(other, self.__class__) and len(self) == len(other):
-            local = self.head
-            foreign = other.head
-
-            while local and foreign:
+            for local, foreign in zip(self, other):
                 if local.value != foreign.value:
                     return False
-                local, foreign = local.child, foreign.child
             return True
 
         else:
@@ -285,21 +281,21 @@ class LinkedList(Chain):
         return False
 
     def __iter__(self):
-        self.__iteration = self.head
+        self._iteration = self.head
         return self
 
     def __next__(self):
 
-        if not self.__iteration:
-            self.__iteration = self.head
+        if not self._iteration:
+            self._iteration = self.head
             raise StopIteration()
 
-        iteration_value = self.__iteration
-        self.__iteration = self.__iteration.child
+        iteration_value = self._iteration
+        self._iteration = self._iteration.child
         return iteration_value
 
 
-class Stack(Chain):
+class Stack(_Chain):
 
     PREFIX = "| "
 
@@ -367,7 +363,7 @@ class Stack(Chain):
         return self.pull()
 
 
-class Queue(Chain):
+class Queue(_Chain):
 
     PREFIX = "> "
     SUFFIX = " >"
@@ -446,13 +442,13 @@ class Deque(Queue):
         super().__init__(iterable, reverse)
 
     def push(self, value, to_back=True):
-        push = self.__push_back if to_back else self.__push_front
+        push = self._push_back if to_back else self._push_front
         push(value)
 
-    def __push_back(self, value):
+    def _push_back(self, value):
         super().push(value)
 
-    def __push_front(self, value):
+    def _push_front(self, value):
         node = Node(value, parent=self.tail)
 
         if self.tail:
@@ -464,10 +460,10 @@ class Deque(Queue):
         self.length += 1
 
     def pull(self, from_front=True):
-        pull = self.__pull_front if from_front else self.__pull_back
+        pull = self._pull_front if from_front else self._pull_back
         pull()
 
-    def __pull_back(self):
+    def _pull_back(self):
         if self.head:
             value = self.head.value
             self.head = self.head.child
@@ -483,7 +479,7 @@ class Deque(Queue):
         else:
             return
 
-    def __pull_front(self):
+    def _pull_front(self):
         return super().pull()	
 
     def extend(self, iterable, reverse=False, prepend=True):
