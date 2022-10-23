@@ -2,4 +2,5 @@ import trees
 
 
 if __name__ == "__main__":
-    struct = trees.BinaryTree([x for x in range(7)])
+    v = [10, 5, 2, 7, 20, 15, 17, 30, 6]
+    struct = trees.BinarySearchTree(v)

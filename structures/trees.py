@@ -8,19 +8,25 @@ class BinaryNode:
         self.value = value
         self.left, self.right = left, right
         self.parent = parent
+        self.children = (0 if left is None else 1) + (0 if right is None else 1)
 
     def set_child(self, value, is_left=True):
         node = BinaryNode(value, parent=self)
         if is_left:
+            self.children += 1 if self.left is None else 0
             self.left = node
         else:
+            self.children += 1 if self.right is None else 0
             self.right = node
 
     def pop_child(self, node):
-        if node is self.left:
-            self.left = None
-        elif node is self.right:
-            self.right = None
+        if node is not None:
+            if node is self.left:
+                self.left = None
+                self.children -= 1
+            elif node is self.right:
+                self.right = None
+                self.children -= 1
 
     def display_value(self):
         return f'"{self.value}"' if isinstance(self.value, str) else str(self.value)
@@ -31,20 +37,19 @@ class BinaryNode:
 
 class BinaryTree:
 
-    def __init__(self, values=()):
-        length = len(values)
+    def __init__(self, values=(), reverse=False):
+        self.root = None
+        self.size = 0
         self.__nodes = []
         self.__iteration = 0
 
-        if length:
-            self.root = BinaryNode(values[0])
-            self.size = 1
-            for index in range(1, length):
-                self.insert(values[index], index)
+        if values:
+            self.extend(values, reverse)
 
-        else:
-            self.root = None
-            self.size = 0
+    def extend(self, values, reverse=False):
+        for index in range(len(values)):
+            i = -(index + 1) if reverse else index
+            self.insert(values[i], index)
 
     def index(self, index):
         try:
@@ -56,34 +61,18 @@ class BinaryTree:
         if self.root:
             parent = self.index((index - 1) // 2)
             parent.set_child(value, is_left=bool(index % 2))
-
         else:
             self.root = BinaryNode(value)
         self.size += 1
 
     def pop(self, index):
         removed = self.index(index)
-        if removed == self.root:
+        if removed is self.root:
             del self.root
             self.root = None
         else:
             removed.parent.pop_child(removed)
         self.size -= 1
-
-    def depth_first(self, func, args=(), get_value=True):
-        self.__dfs(self.root, func, args, get_value)
-
-    def breadth_first(self, func, args=(), get_value=True):
-        queue = chains.Queue()
-        queue.push(self.root)
-
-        while queue.head is not None:
-            node = queue.pull()
-            if node.left is not None:
-                queue.push(node.left)
-            if node.right is not None:
-                queue.push(node.right)
-            func(node.value if get_value else node, *args)
 
     def values(self, breadth_first=True):
         arr = []
@@ -92,6 +81,22 @@ class BinaryTree:
         else:
             self.depth_first(arr.append)
         return arr
+
+    def depth_first(self, func, args=(), get_value=True):
+        self.__dfs(self.root, func, args, get_value)
+
+    def breadth_first(self, func, args=(), get_value=True):
+        queue = chains.Queue()
+        if self.root:
+            queue.push(self.root)
+
+        while queue.head is not None:
+            node = queue.pull()
+            if node.left is not None:
+                queue.push(node.left)
+            if node.right is not None:
+                queue.push(node.right)
+            func(node.value if get_value else node, *args)
 
     def __get_node_at_index(self, index):
         current = self.root
@@ -131,22 +136,130 @@ class BinaryTree:
 
 class BinarySearchTree:
 
-    def __init__(self, values=()):
+    def __init__(self, values=(), reverse=False):
+        self.root = None
+        self.size = 0
+        self.__values = set()
 
-        length = len(values)
+        if values:
+            self.extend(values, reverse)
 
-        if length:
-            self.root = BinaryNode(values[0])
-            for value in values:
-                self.push(value)
-
-        else:
-            self.root = None
+    def extend(self, values, reverse=False):
+        step = -1 if reverse else 1
+        for value in values[::step]:
+            self.push(value)
 
     def push(self, value):
 
-        if self.root:
-            pass
+        parent = self.__get_parent_of_value(value)
+        if parent:
+            parent.set_child(value, is_left=(value < parent.value))
 
         else:
             self.root = BinaryNode(value)
+        self.size += 1
+        self.__values.add(value)
+
+    def pull(self, value):
+        if value in self.__values:
+            node = self.get_node_of_value(value)
+            self.__delete_node(node)
+            self.size -= 1
+            self.__values.discard(value)
+            return value
+
+    def depth_first(self, func, args=(), get_value=True):
+        self.__dfs(self.root, func, args, get_value)
+
+    def breadth_first(self, func, args=(), get_value=True):
+        queue = chains.Queue()
+        if self.root:
+            queue.push(self.root)
+
+        while queue.head is not None:
+            node = queue.pull()
+            if node.left is not None:
+                queue.push(node.left)
+            if node.right is not None:
+                queue.push(node.right)
+            func(node.value if get_value else node, *args)
+
+    def __get_parent_of_value(self, value):
+        parent = None
+        current = self.root
+        while current:
+            parent = current
+            current = parent.right if value > parent.value else parent.left
+        return parent
+
+    def get_node_of_value(self, value):
+        current = self.root
+        while current and current.value != value:
+            current = current.left if value < current.value else current.right
+        return current
+
+    def __delete_node(self, node):
+        parent = node.parent
+
+        if parent is None:
+            self.__delete_root()
+        elif node.children == 0:
+            self.__delete_leaf_node(node, parent)
+        elif node.children == 1:
+            self.__delete_one_child_node(node, parent)
+        else:
+            self.__delete_two_child_node(node)
+
+    def __delete_root(self):
+        root = self.root
+
+        if root.children == 0:
+            self.root = None
+        elif root.children == 1:
+            child = root.right if root.left is None else root.left
+            child.parent = None
+            self.root = child
+        else:
+            replacement = self.__get_next_highest(root)
+            self.root.value = replacement.value
+            self.__delete_node(replacement)
+
+    @staticmethod
+    def __delete_leaf_node(node, parent):
+        parent.pop_child(node)
+
+    @staticmethod
+    def __delete_one_child_node(node, parent):
+        child = node.right if node.left is None else node.left
+        child.parent = parent
+        if node is parent.left:
+            parent.left = child
+        else:
+            parent.right = child
+
+    def __delete_two_child_node(self, node):
+        replacement = self.__get_next_highest(node) if node.value <= self.root.value \
+            else self.__get_next_lowest(node)
+        node.value = replacement.value
+        self.__delete_node(replacement)
+
+    @staticmethod
+    def __get_next_highest(node):
+        current = node.right
+        while current.left:
+            current = current.left
+        return current
+
+    @staticmethod
+    def __get_next_lowest(node):
+        current = node.left
+        while current.right:
+            current = current.right
+        return current
+
+    def __dfs(self, node, func, args, get_value):
+        if node is None:
+            return
+        func(node.value if get_value else node, *args)
+        self.__dfs(node.left, func, args, get_value)
+        self.__dfs(node.right, func, args, get_value)
