@@ -47,7 +47,7 @@ class BinaryNode:
 class _Tree:
 
     SEPARATOR = ", "
-    PREFIX = "("
+    PREFIX = "Tree("
     SUFFIX = ")"
 
     MISSING_IADD = Exception("Addition may not be performed on this object.")
@@ -409,3 +409,198 @@ class BinarySearchTree(_Tree):
         self._nodes = nodes
         self._iteration = 0
         return self
+
+
+class _Heap:
+
+    SEPARATOR = ", "
+    PREFIX = "Heap("
+    SUFFIX = ")"
+
+    INCOMPLETE_METHOD_ERROR = Exception("Incomplete method called; class hierarchy violated.")
+
+    def __init__(self, values=()):
+        self.items = []
+        self.size = 0
+        self.extend(values)
+        self._iteration = 0
+
+    def extend(self, values):
+        for value in values:
+            self.push(value)
+
+    def push(self, value):
+        self.items.append(value)
+        self._bubble_up(self.size)
+        self.size += 1
+
+    def pull(self):
+        if self.size > 0:
+            self.size -= 1
+            old = self.items[0]
+            if self.size > 0:
+                self.items[0] = self.items[self.size]
+                self._bubble_down(0)
+            self.items.pop()
+            return old
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+    def _swap(self, i1, i2):
+        temp = self.items[i1]
+        self.items[i1] = self.items[i2]
+        self.items[i2] = temp
+
+    def _bubble_up(self, index):
+        raise self.INCOMPLETE_METHOD_ERROR
+
+    def _bubble_down(self, index):
+        current_index = index
+        child_index = self._get_child_index(index)
+        while child_index:
+            self._swap(current_index, child_index)
+            current_index = child_index
+            child_index = self._get_child_index(current_index)
+
+    def _get_child_index(self, index):
+        raise self.INCOMPLETE_METHOD_ERROR
+
+    @staticmethod
+    def get_parent_index(index):
+        return (index - 1) // 2
+
+    @staticmethod
+    def get_left_index(index):
+        return (index * 2) + 1
+
+    @staticmethod
+    def get_right_index(index):
+        return (index * 2) + 2
+
+    @staticmethod
+    def _get_item_display_value(item):
+        return f'"{item}"' if isinstance(item, str) else str(item)
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.items == other.items
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __add__(self, other):
+        c = self.copy()
+        c += other
+        return c
+
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __iadd__(self, other):
+        try:
+            self.extend(other)
+        except TypeError:
+            self.push(other)
+        return self
+
+    def __iter__(self):
+        self._iteration = self.size
+        return self
+
+    def __next__(self):
+        if self._iteration <= 0:
+            raise StopIteration()
+        self._iteration -= 1
+        return self.pull()
+
+    def __str__(self, separator=None, prefix=None, suffix=None):
+        sep = self.SEPARATOR if separator is None else separator
+        suf = self.SUFFIX if suffix is None else suffix
+        output = self.PREFIX if prefix is None else prefix
+
+        remaining = self.size
+        for item in self.items:
+            output += self._get_item_display_value(item)
+            remaining -= 1
+            output += "" if remaining == 0 else sep
+
+        output += suf
+        return output
+
+    def __contains__(self, item):
+        return item in self.items
+
+    def __len__(self):
+        return self.size
+
+
+class MinHeap(_Heap):
+
+    PREFIX = "MinHeap("
+
+    def _bubble_up(self, index):
+        value = self.items[index]
+        current_index = index
+        parent_index = self.get_parent_index(index)
+        while parent_index >= 0 and value < self.items[parent_index]:
+            self._swap(current_index, parent_index)
+            current_index = parent_index
+            parent_index = self.get_parent_index(current_index)
+
+    def _get_child_index(self, index):
+        output = None
+        value = self.items[index]
+        left = self.get_left_index(index)
+        right = self.get_right_index(index)
+        if left < self.size and self.items[left] < value:
+            output = left
+            value = self.items[left]
+        if right < self.size and self.items[right] < value:
+            output = right
+        return output
+
+    def __str__(self, separator=None, prefix=None, suffix=None):
+        sep = self.SEPARATOR if separator is None else separator
+        pre = self.PREFIX if prefix is None else prefix
+        suf = self.SUFFIX if suffix is None else suffix
+        return super().__str__(sep, pre, suf)
+
+    def __reversed__(self):
+        return MaxHeap(self.items)
+
+
+class MaxHeap(_Heap):
+
+    PREFIX = "MaxHeap("
+
+    def _bubble_up(self, index):
+        value = self.items[index]
+        current_index = index
+        parent_index = self.get_parent_index(index)
+        while parent_index >= 0 and value > self.items[parent_index]:
+            self._swap(current_index, parent_index)
+            current_index = parent_index
+            parent_index = self.get_parent_index(current_index)
+
+    def _get_child_index(self, index):
+        output = None
+        value = self.items[index]
+        left = self.get_left_index(index)
+        right = self.get_right_index(index)
+        if left < self.size and self.items[left] > value:
+            output = left
+            value = self.items[left]
+        if right < self.size and self.items[right] > value:
+            output = right
+        return output
+
+    def __str__(self, separator=None, prefix=None, suffix=None):
+        sep = self.SEPARATOR if separator is None else separator
+        pre = self.PREFIX if prefix is None else prefix
+        suf = self.SUFFIX if suffix is None else suffix
+        return super().__str__(sep, pre, suf)
+
+    def __reversed__(self):
+        return MinHeap(self.items)

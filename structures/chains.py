@@ -73,6 +73,9 @@ class _Chain:
             f"{self.tail} -> {self.tail.child if self.tail else None}",
         )
 
+    def __radd__(self, other):
+        return self.__add__(other)
+
     def __add__(self, other):
         if hasattr(self.__class__, "__iadd__"):
             output = self.copy()
@@ -88,9 +91,6 @@ class _Chain:
         else:
             raise self.MISSING_ISUB
         return output
-
-    def __radd__(self, other):
-        return self.__add__(other)
 
     def __str__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
