@@ -280,15 +280,18 @@ class BinarySearchTree(_Tree):
             self.push(value)
 
     def push(self, value):
+        if value not in self._values:
+            parent = self._get_parent_of_value(value)
+            if parent:
+                parent.set_child(value, is_left=(value < parent.value))
+            else:
+                self.root = BinaryNode(value)
+            self.size += 1
+            self._values.add(value)
 
-        parent = self._get_parent_of_value(value)
-        if parent:
-            parent.set_child(value, is_left=(value < parent.value))
-
-        else:
-            self.root = BinaryNode(value)
-        self.size += 1
-        self._values.add(value)
+    def reduce(self, values):
+        for value in values:
+            self.pull(value)
 
     def pull(self, value):
         if value in self._values:
@@ -298,12 +301,12 @@ class BinarySearchTree(_Tree):
             self._values.discard(value)
             return value
 
-    def pull_all(self, values):
-        for value in values:
-            self.pull(value)
-
     def traverse(self, func, args=(), get_value=True):
         self._in(self.root, func, args, get_value)
+
+    def nearest_value(self, value, round_up=True):
+        # TODO Get this shit to work.
+        return
 
     def _get_parent_of_value(self, value):
         parent = None
@@ -341,7 +344,7 @@ class BinarySearchTree(_Tree):
             child.parent = None
             self.root = child
         else:
-            replacement = self._get_next_highest(root)
+            replacement = self._get_next_highest_node(root)
             self.root.value = replacement.value
             self._delete_node(replacement)
 
@@ -359,24 +362,42 @@ class BinarySearchTree(_Tree):
             parent.right = child
 
     def _delete_two_child_node(self, node):
-        replacement = self._get_next_highest(node) if node.value <= self.root.value \
-            else self._get_next_lowest(node)
+        replacement = self._get_next_highest_node(node) if node.value <= self.root.value \
+            else self._get_next_lowest_node(node)
         node.value = replacement.value
         self._delete_node(replacement)
 
-    @staticmethod
-    def _get_next_highest(node):
-        current = node.right
-        while current.left:
-            current = current.left
-        return current
+    def _get_next_highest_node(self, node):
+        if node.right is None:
+            parent = node.parent
+            if parent is None:
+                return node
+            elif node is parent.left:
+                return parent
+            else:
+                return self._get_next_highest_node(parent)
 
-    @staticmethod
-    def _get_next_lowest(node):
-        current = node.left
-        while current.right:
-            current = current.right
-        return current
+        else:
+            current = node.right
+            while current.left:
+                current = current.left
+            return current
+
+    def _get_next_lowest_node(self, node):
+        if node.left is None:
+            parent = node.parent
+            if parent is None:
+                return node
+            elif node is parent.right:
+                return parent
+            else:
+                return self._get_next_highest_node(parent)
+
+        else:
+            current = node.left
+            while current.right:
+                current = current.right
+            return current
 
     def __iadd__(self, other):
         try:
@@ -388,7 +409,7 @@ class BinarySearchTree(_Tree):
 
     def __isub__(self, other):
         try:
-            self.pull_all(other)
+            self.reduce(other)
         except TypeError:
             self.pull(other)
 
@@ -505,16 +526,6 @@ class _Heap:
             self.push(other)
         return self
 
-    def __iter__(self):
-        self._iteration = self.size
-        return self
-
-    def __next__(self):
-        if self._iteration <= 0:
-            raise StopIteration()
-        self._iteration -= 1
-        return self.pull()
-
     def __str__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
         suf = self.SUFFIX if suffix is None else suffix
@@ -534,6 +545,16 @@ class _Heap:
 
     def __len__(self):
         return self.size
+
+    def __iter__(self):
+        self._iteration = self.size
+        return self
+
+    def __next__(self):
+        if self._iteration <= 0:
+            raise StopIteration()
+        self._iteration -= 1
+        return self.pull()
 
 
 class MinHeap(_Heap):

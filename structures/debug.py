@@ -1,5 +1,10 @@
-import trees
+import misc
 
 
 if __name__ == "__main__":
-    struct = trees.MaxHeap([10, 5, 2, 7, 20, 15, 17, 30, 6, 15, 42, 8])
+    struct = misc.RangeDict()
+    struct.set(10, 20)
+    struct.set(20, 30)
+    struct.set(30, 40)
+
+    print(struct)
