@@ -270,6 +270,8 @@ class BinarySearchTree(_Tree):
 
     def __init__(self, values=(), reverse=False):
         super().__init__()
+        self._highest = None
+        self._lowest = None
         self._values = set()
         if values:
             self.extend(values, reverse)
@@ -283,11 +285,15 @@ class BinarySearchTree(_Tree):
         if value not in self._values:
             parent = self._get_parent_of_value(value)
             if parent:
-                parent.set_child(value, is_left=(value < parent.value))
+                is_left = value < parent.value
+                parent.set_child(value, is_left=is_left)
+                node = parent.get_child(is_left)
             else:
                 self.root = BinaryNode(value)
-            self.size += 1
+                node = self.root
+            self._update_max_and_min(node)
             self._values.add(value)
+            self.size += 1
 
     def reduce(self, values):
         for value in values:
@@ -315,6 +321,12 @@ class BinarySearchTree(_Tree):
             parent = current
             current = parent.right if value > parent.value else parent.left
         return parent
+
+    def _update_max_and_min(self, node):
+        if self._highest is None or node.value > self._highest.value:
+            self._highest = node
+        if self._lowest is None or node.value < self._lowest.value:
+            self._lowest = node
 
     def _get_node_of_value(self, value):
         current = self.root

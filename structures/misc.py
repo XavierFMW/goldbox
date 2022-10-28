@@ -8,9 +8,13 @@ class RangeDict:
         self.keys = trees.BinarySearchTree()
         self.round_up = round_up_keys
 
-    def set(self, key, value):
+    def add(self, key, value):
         self.dictionary[key] = value
         self.keys.push(key)
+
+    def remove(self, key):
+        self.dictionary.pop(key)
+        self.keys.pull(key)
 
     def get(self, key):
         if key in self.keys:
