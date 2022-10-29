@@ -20,7 +20,7 @@ class RangeDict:
         if key in self.keys:
             true_key = key
         else:
-            true_key = self.keys.nearest_value(key, self.round_up)
+            true_key = self.keys.get_nearest_value(key, self.round_up)
 
         return self.dictionary[true_key]
 

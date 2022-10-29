@@ -40,6 +40,11 @@ class BinaryNode:
     def get_display_value(self):
         return f'"{self.value}"' if isinstance(self.value, str) else str(self.value)
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return other.value == self.value
+        return False
+
     def __str__(self):
         return f"BinaryNode({self.get_display_value()})"
 
@@ -270,8 +275,8 @@ class BinarySearchTree(_Tree):
 
     def __init__(self, values=(), reverse=False):
         super().__init__()
-        self._highest = None
-        self._lowest = None
+        self._maximum = None
+        self._minimum = None
         self._values = set()
         if values:
             self.extend(values, reverse)
@@ -304,15 +309,29 @@ class BinarySearchTree(_Tree):
             node = self._get_node_of_value(value)
             self._delete_node(node)
             self.size -= 1
-            self._values.discard(value)
+            self._values.remove(value)
             return value
 
     def traverse(self, func, args=(), get_value=True):
         self._in(self.root, func, args, get_value)
 
-    def nearest_value(self, value, round_up=True):
-        # TODO Get this shit to work.
-        return
+    def get_nearest_value(self, value, round_up=True):
+        if value in self._values:
+            return value
+        current = self._get_parent_of_value(value)
+        if round_up:
+            while current.value < value and current is not self._maximum:
+                current = self._get_next_highest_node(current)
+        else:
+            while current.value > value and current is not self._minimum:
+                current = self._get_next_lowest_node(current)
+        return current.value
+
+    def get_maximum_value(self):
+        return self._maximum.value
+
+    def get_minimum_value(self):
+        return self._minimum.value
 
     def _get_parent_of_value(self, value):
         parent = None
@@ -323,10 +342,10 @@ class BinarySearchTree(_Tree):
         return parent
 
     def _update_max_and_min(self, node):
-        if self._highest is None or node.value > self._highest.value:
-            self._highest = node
-        if self._lowest is None or node.value < self._lowest.value:
-            self._lowest = node
+        if self._maximum is None or node.value > self._maximum.value:
+            self._maximum = node
+        if self._minimum is None or node.value < self._minimum.value:
+            self._minimum = node
 
     def _get_node_of_value(self, value):
         current = self.root
@@ -337,6 +356,7 @@ class BinarySearchTree(_Tree):
     def _delete_node(self, node):
         parent = node.parent
 
+        self._pass_max_and_min(node)
         if parent is None:
             self._delete_root()
         elif node.children == 0:
@@ -345,6 +365,12 @@ class BinarySearchTree(_Tree):
             self._delete_one_child_node(node, parent)
         else:
             self._delete_two_child_node(node)
+
+    def _pass_max_and_min(self, node):
+        if node is self._maximum:
+            self._maximum = self._get_next_lowest_node(self._maximum)
+        elif node is self._minimum:
+            self._minimum = self._get_next_highest_node(self._minimum)
 
     def _delete_root(self):
         root = self.root
@@ -380,14 +406,16 @@ class BinarySearchTree(_Tree):
         self._delete_node(replacement)
 
     def _get_next_highest_node(self, node):
-        if node.right is None:
+        child = None
+        while node.right is child or node.right is None:
             parent = node.parent
-            if parent is None:
+            if parent is None or node is self._maximum:
                 return node
             elif node is parent.left:
                 return parent
             else:
-                return self._get_next_highest_node(parent)
+                child = node
+                node = parent
 
         else:
             current = node.right
@@ -396,14 +424,16 @@ class BinarySearchTree(_Tree):
             return current
 
     def _get_next_lowest_node(self, node):
-        if node.left is None:
+        child = None
+        while node.left is child or node.left is None:
             parent = node.parent
-            if parent is None:
+            if parent is None or node is self._minimum:
                 return node
             elif node is parent.right:
                 return parent
             else:
-                return self._get_next_highest_node(parent)
+                child = node
+                node = parent
 
         else:
             current = node.left
