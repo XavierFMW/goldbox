@@ -1,6 +1,6 @@
 import chains
-import math
 import copy
+import math
 
 
 class BinaryNode:

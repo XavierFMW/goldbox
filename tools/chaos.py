@@ -1,5 +1,5 @@
-import random
 import secrets
+import random
 
 
 def get_random_int(start, end, inclusive=False, truly_random=False):
