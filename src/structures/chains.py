@@ -11,7 +11,7 @@ class Node:
     def display_value(self):
         return f'"{self.value}"' if isinstance(self.value, str) else str(self.value)
 
-    def __str__(self):
+    def __repr__(self):
         return f"Node({self.display_value()})"
 
 
@@ -92,7 +92,7 @@ class _Chain:
             raise self.MISSING_ISUB
         return output
 
-    def __str__(self, separator=None, prefix=None, suffix=None):
+    def __repr__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
         pre = self.PREFIX if prefix is None else prefix
         suf = self.SUFFIX if suffix is None else suffix
@@ -346,11 +346,11 @@ class Stack(_Chain):
         self.push(other)
         return self
 
-    def __str__(self, separator=None, prefix=None, suffix=None):
+    def __repr__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
         pre = self.PREFIX if prefix is None else prefix
         suf = self.SUFFIX if suffix is None else suffix
-        return super().__str__(sep, pre, suf)
+        return super().__repr__(sep, pre, suf)
 
     def __iter__(self):
         return self
@@ -415,11 +415,11 @@ class Queue(_Chain):
         self.push(other)
         return self
 
-    def __str__(self, separator=None, prefix=None, suffix=None):
+    def __repr__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
         pre = self.PREFIX if prefix is None else prefix
         suf = self.SUFFIX if suffix is None else suffix
-        return super().__str__(sep, pre, suf)
+        return super().__repr__(sep, pre, suf)
 
     def __iter__(self):
         return self
@@ -499,8 +499,8 @@ class Deque(Queue):
         self.push(other)
         return self
 
-    def __str__(self, separator=None, prefix=None, suffix=None):
+    def __repr__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
         pre = self.PREFIX if prefix is None else prefix
         suf = self.SUFFIX if suffix is None else suffix
-        return super().__str__(sep, pre, suf)
+        return super().__repr__(sep, pre, suf)

@@ -45,7 +45,7 @@ class BinaryNode:
             return other.value == self.value
         return False
 
-    def __str__(self):
+    def __repr__(self):
         return f"BinaryNode({self.get_display_value()})"
 
 
@@ -138,7 +138,7 @@ class _Tree:
     def __radd__(self, other):
         return self.__add__(other)
 
-    def __str__(self, separator=None, prefix=None, suffix=None):
+    def __repr__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
         suf = self.SUFFIX if suffix is None else suffix
         output = self.PREFIX if prefix is None else prefix
@@ -251,11 +251,11 @@ class BinaryTree(_Tree):
                 base //= 2
         return current
 
-    def __str__(self, separator=None, prefix=None, suffix=None):
+    def __repr__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
         pre = self.PREFIX if prefix is None else prefix
         suf = self.SUFFIX if suffix is None else suffix
-        return super().__str__(sep, pre, suf)
+        return super().__repr__(sep, pre, suf)
 
     def __contains__(self, item):
         for value in self.values():
@@ -457,11 +457,11 @@ class BinarySearchTree(_Tree):
 
         return self
 
-    def __str__(self, separator=None, prefix=None, suffix=None):
+    def __repr__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
         pre = self.PREFIX if prefix is None else prefix
         suf = self.SUFFIX if suffix is None else suffix
-        return super().__str__(sep, pre, suf)
+        return super().__repr__(sep, pre, suf)
 
     def __contains__(self, item):
         return item in self._values
@@ -568,7 +568,7 @@ class _Heap:
             self.push(other)
         return self
 
-    def __str__(self, separator=None, prefix=None, suffix=None):
+    def __repr__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
         suf = self.SUFFIX if suffix is None else suffix
         output = self.PREFIX if prefix is None else prefix
@@ -624,11 +624,11 @@ class MinHeap(_Heap):
             output = right
         return output
 
-    def __str__(self, separator=None, prefix=None, suffix=None):
+    def __repr__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
         pre = self.PREFIX if prefix is None else prefix
         suf = self.SUFFIX if suffix is None else suffix
-        return super().__str__(sep, pre, suf)
+        return super().__repr__(sep, pre, suf)
 
     def __reversed__(self):
         return MaxHeap(self.items)
@@ -659,11 +659,11 @@ class MaxHeap(_Heap):
             output = right
         return output
 
-    def __str__(self, separator=None, prefix=None, suffix=None):
+    def __repr__(self, separator=None, prefix=None, suffix=None):
         sep = self.SEPARATOR if separator is None else separator
         pre = self.PREFIX if prefix is None else prefix
         suf = self.SUFFIX if suffix is None else suffix
-        return super().__str__(sep, pre, suf)
+        return super().__repr__(sep, pre, suf)
 
     def __reversed__(self):
         return MinHeap(self.items)
