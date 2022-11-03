@@ -10,7 +10,7 @@ Project GitHub at <https://github.com/XavierFMW/goldbox>
 
 setup(
     name='goldbox',
-    version='1.0',
+    version='1.0.1',
     description="A package of simple Python utilities and data structures.",
     long_description=long_description,
     license='GPLv3',

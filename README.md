@@ -52,5 +52,7 @@ A collection of constant values.
 
 
 ## Changelog
+### Version 1.0.1
+- Updated project description.
 ### Version 1.0
 - Released project.
