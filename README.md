@@ -7,7 +7,7 @@ Copyright Xavier Mercerweiss, 2022. Licensed under GPLv3.
 - Released project.
 
 ## Contents
-### **structures**
+### ***structures***
 A variety of data structures.
 #### chains
 - Node : An object which holds a given value, a reference to a parent, and a reference to a child.
@@ -30,7 +30,7 @@ A variety of data structures.
 #### misc
 - RangeDict : An extension of the dict class which utilizes a BinarySearchTree to store keys. If passed a key which it does not contain, the value of the nearest key is returned. May only store keys of comparable data types. Missing keys may be rounded either up or down.
 
-### **tools**
+### ***tools***
 Several basic utilities.
 #### chaos
 - get_random_int : Generates a random integer within a specific range. 
@@ -45,7 +45,7 @@ Several basic utilities.
 #### misc
 - time_it : A function decorator which prints the number of milliseconds it takes a function to execute.
 
-### **values**
+### ***values***
 A collection of constant values.
 #### text
 - LOWER : A string containing all lowercase letters used in English.
