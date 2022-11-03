@@ -2,10 +2,6 @@
 A library of data structures and utilities used for Python programming. 
 Copyright Xavier Mercerweiss, 2022. Licensed under GPLv3.
 
-## Changelog
-### Version 1.0
-- Released project.
-
 ## Contents
 ### ***structures***
 A variety of data structures.
@@ -53,3 +49,8 @@ A collection of constant values.
 - DIGITS : A string containing digits 0 through 9.
 - SPECIALS : ?!@#$%^&\*()[]{}<>-\_+=|/',.
 - CHARS : A combination of all strings listed above.
+
+
+## Changelog
+### Version 1.0
+- Released project.
