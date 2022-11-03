@@ -1,5 +1,5 @@
 # goldbox
-A library of data structures and utilities used for Python programming. 
+A collection of data structures and basic utilities used for Python programming. 
 Copyright Xavier Mercerweiss, 2022. Licensed under GPLv3.
 
 ## Contents
