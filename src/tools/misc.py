@@ -27,7 +27,7 @@ def time_it(function):
 		end = time.time()
 
 		difference = end - start
-		print(f"{function.__name__}: {round(difference * 1000)}")
+		print(f"{function.__name__}: {round(difference * 1000)}ms")
 		return response
 
 	return wrapper
